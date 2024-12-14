@@ -54,16 +54,16 @@ git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykerne
 
 # Repo sync
 repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
-repo sync -j$(nproc --all) --force-sync --current-branch --clone-bundle --optimized-fetch --prune
+repo sync -j$(nproc --all) --force-sync
 
 ## Extract kernel version, git commit string
-cd "$WORK_DIR/gki"
+cd "$WORK_DIR/common"
 KERNEL_VERSION=$(make kernelversion)
 LAST_COMMIT_KERNEL=$(git log --format="%s" -n 1)
 cd "$WORK_DIR"
 
 # Set aosp clang version
-sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/gki/build.config.common
+sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
 
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
@@ -94,7 +94,7 @@ if [ -n "$USE_KSU_SUSFS" ]; then
     cd "$WORK_DIR/susfs4ksu"
     LAST_COMMIT_SUSFS=$(git log --format="%s" -n 1)
     
-    cd "$WORK_DIR/gki"
+    cd "$WORK_DIR/common"
     cp "$SUSFS_PATCHES/50_add_susfs_in_gki-${GKI_VERSION}.patch" .
     cp "$SUSFS_PATCHES/fs/susfs.c" ./fs/
     cp "$SUSFS_PATCHES/include/linux/susfs.h" ./include/linux/
@@ -103,7 +103,7 @@ if [ -n "$USE_KSU_SUSFS" ]; then
     cd "$WORK_DIR/KernelSU"
     cp "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch" .
     patch -p1 < 10_enable_susfs_for_ksu.patch || exit 1
-    cd "$WORK_DIR/gki"
+    cd "$WORK_DIR/common"
     patch -p1 < 50_add_susfs_in_gki-${GKI_VERSION}.patch || exit 1
     
     SUSFS_VERSION=$(grep -E '^#define SUSFS_VERSION' ./include/linux/susfs.h | cut -d' ' -f3 | sed 's/"//g')
@@ -148,7 +148,7 @@ send_msg "$text"
 set +e
 
 ## Build GKI
-LTO=$LTO_TYPE BUILD_CONFIG=gki/build.config.gki.aarch64 build/build.sh -j$(nproc --all) | tee "$WORK_DIR/build_log.txt"
+LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(nproc --all) | tee "$WORK_DIR/build_log.txt"
 
 set -e
 
