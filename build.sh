@@ -18,12 +18,12 @@ mkdir -p android-kernel && cd android-kernel
 GKI_VERSION="android12-5.10"
 USE_LTS_MANIFEST=0
 USE_CUSTOM_MANIFEST=1
-CUSTOM_MANIFEST_REPO="https://github.com/negroweed/kernel_manifest_android12-5.10" 
-CUSTOM_MANIFEST_BRANCH="main"                                                     
+CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/kernel_manifest" 
+CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"                                                     
 WORK_DIR=$(pwd)
 BUILDER_DIR="$WORK_DIR/.."
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
-ANYKERNEL_REPO="https://github.com/negroweed/Anykernel3"
+ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
 RANDOM_HASH=$(head -c 20 /dev/urandom | sha1sum | head -c 7)
 ZIP_NAME="gki-KVER-KSU-$RANDOM_HASH.zip"

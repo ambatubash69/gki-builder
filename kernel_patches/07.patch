@@ -1,0 +1,27 @@
+From 1a083f753f8c28424064e375cc4ff3657fe92911 Mon Sep 17 00:00:00 2001
+From: picasso09 <119201284+picasso09@users.noreply.github.com>
+Date: Thu, 5 Dec 2024 19:31:01 +0000
+Subject: [PATCH] gki-android12-9: process: reduce freeze time out for faster
+ deep sleep
+
+Signed-off-by: picasso09 <119201284+picasso09@users.noreply.github.com>
+
+Date:      Thu Dec 5 19:31:01 2024 +0000
+Change-Id: aafcb5c6af67a71d4a3864e974ff53b3ee10b323
+---
+ kernel/power/process.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/kernel/power/process.c b/kernel/power/process.c
+index ba51823759ea..85bf418fa84a 100644
+--- a/kernel/power/process.c
++++ b/kernel/power/process.c
+@@ -28,7 +28,7 @@
+ /*
+  * Timeout for stopping processes
+  */
+-unsigned int __read_mostly freeze_timeout_msecs = 20 * MSEC_PER_SEC;
++unsigned int __read_mostly freeze_timeout_msecs = 2 * MSEC_PER_SEC;
+ 
+ static int try_to_freeze_tasks(bool user_only)
+ {
