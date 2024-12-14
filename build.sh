@@ -18,7 +18,7 @@ mkdir -p android-kernel && cd android-kernel
 GKI_VERSION="android12-5.10"
 USE_LTS_MANIFEST=0
 USE_CUSTOM_MANIFEST=1
-CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/kernel_manifest" 
+CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest" 
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"                                                     
 WORK_DIR=$(pwd)
 BUILDER_DIR="$WORK_DIR/.."
