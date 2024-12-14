@@ -15,20 +15,22 @@ fi
 mkdir -p android-kernel && cd android-kernel
 
 ## Variables
-GKI_VERSION="android12-5.10"
-USE_LTS_MANIFEST=0
-USE_CUSTOM_MANIFEST=1
-CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest" 
-CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"                                                     
+
+# DO NOT change
 WORK_DIR=$(pwd)
 BUILDER_DIR="$WORK_DIR/.."
-KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
+RANDOM_HASH=$(head -c 20 /dev/urandom | sha1sum | head -c 7)
+LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
+
+# Common
+GKI_VERSION="android12-5.10"
+CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest" 
+CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
-RANDOM_HASH=$(head -c 20 /dev/urandom | sha1sum | head -c 7)
 ZIP_NAME="gki-KVER-KSU-$RANDOM_HASH.zip"
 AOSP_CLANG_VERSION="r536225"
-LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
+KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
 # Import telegram functions
 . "$BUILDER_DIR/telegram_functions.sh"
@@ -48,49 +50,20 @@ sudo mv repo /usr/bin
 sudo chmod +x /usr/bin/repo
 
 ## Clone AnyKernel
-if [ -z "$ANYKERNEL_REPO" ] || [ -z "$ANYKERNEL_BRANCH" ]; then
-    echo "[ERROR] ANYKERNEL_REPO or ANYKERNEL_BRANCH var is not defined. Fix your build vars."
-    exit 1
-fi
-
 git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykernel"
 
-## Sync kernel manifest
-if [ -z "$GKI_VERSION" ]; then
-    echo "[ERROR] GKI_VERSION var is not defined. Fix your build vars."
-    exit 1
-elif echo "$GKI_VERSION" | grep -qi 'lts'; then
-    echo "[ERROR] Don't add '-lts' in GKI_VERSION var!. Fix your build vars."
-    exit 1
-fi
-
-if [ "$USE_CUSTOM_MANIFEST" -eq 1 ] && [ "$USE_LTS_MANIFEST" -eq 1 ]; then
-    echo "[ERROR] USE_CUSTOM_MANIFEST can't be used together with USE_LTS_MANIFEST. Fix your build vars."
-    exit 1
-fi
-
-if [ "$USE_CUSTOM_MANIFEST" -eq 0 ] && [ "$USE_LTS_MANIFEST" -eq 1 ]; then
-    repo init --depth 1 -u https://android.googlesource.com/kernel/manifest -b common-${GKI_VERSION}-lts
-elif [ "$USE_CUSTOM_MANIFEST" -eq 0 ]; then
-    repo init --depth 1 -u https://android.googlesource.com/kernel/manifest -b common-${GKI_VERSION}
-elif [ "$USE_CUSTOM_MANIFEST" -eq 1 ]; then
-    if [ -z "$CUSTOM_MANIFEST_REPO" ] || [ -z "$CUSTOM_MANIFEST_BRANCH" ]; then
-        echo "[ERROR] USE_CUSTOM_MANIFEST is defined, but CUSTOM_MANIFEST_REPO or CUSTOM_MANIFEST_BRANCH is not defined. Fix your build vars."
-        exit 1
-    fi
-    repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
-fi
-
+# Repo sync
+repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
 repo sync -j$(nproc --all) --force-sync --current-branch --clone-bundle --optimized-fetch --prune
 
 ## Extract kernel version, git commit string
-cd "$WORK_DIR/common"
+cd "$WORK_DIR/gki"
 KERNEL_VERSION=$(make kernelversion)
 LAST_COMMIT_KERNEL=$(git log --format="%s" -n 1)
 cd "$WORK_DIR"
 
 # Set aosp clang version
-sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
+sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/gki/build.config.common
 
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
@@ -121,7 +94,7 @@ if [ -n "$USE_KSU_SUSFS" ]; then
     cd "$WORK_DIR/susfs4ksu"
     LAST_COMMIT_SUSFS=$(git log --format="%s" -n 1)
     
-    cd "$WORK_DIR/common"
+    cd "$WORK_DIR/gki"
     cp "$SUSFS_PATCHES/50_add_susfs_in_gki-${GKI_VERSION}.patch" .
     cp "$SUSFS_PATCHES/fs/susfs.c" ./fs/
     cp "$SUSFS_PATCHES/include/linux/susfs.h" ./include/linux/
@@ -130,7 +103,7 @@ if [ -n "$USE_KSU_SUSFS" ]; then
     cd "$WORK_DIR/KernelSU"
     cp "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch" .
     patch -p1 < 10_enable_susfs_for_ksu.patch || exit 1
-    cd "$WORK_DIR/common"
+    cd "$WORK_DIR/gki"
     patch -p1 < 50_add_susfs_in_gki-${GKI_VERSION}.patch || exit 1
     
     SUSFS_VERSION=$(grep -E '^#define SUSFS_VERSION' ./include/linux/susfs.h | cut -d' ' -f3 | sed 's/"//g')
@@ -175,7 +148,7 @@ send_msg "$text"
 set +e
 
 ## Build GKI
-LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(nproc --all) | tee "$WORK_DIR/build_log.txt"
+LTO=$LTO_TYPE BUILD_CONFIG=gki/build.config.gki.aarch64 build/build.sh -j$(nproc --all) | tee "$WORK_DIR/build_log.txt"
 
 set -e
 
