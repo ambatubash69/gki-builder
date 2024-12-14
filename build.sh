@@ -29,8 +29,6 @@ RANDOM_HASH=$(head -c 20 /dev/urandom | sha1sum | head -c 7)
 ZIP_NAME="gki-KVER-KSU-$RANDOM_HASH.zip"
 AOSP_CLANG_VERSION="r536225"
 LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
-# Allow to skip kernel patches
-SKIP_KERNEL_PATCHES=0
 
 # Import telegram functions
 . "$BUILDER_DIR/telegram_functions.sh"
@@ -110,17 +108,6 @@ cd "$WORK_DIR"
 ## Apply kernel patches
 git config --global user.email "eraselk@proton.me"
 git config --global user.name "eraselk"
-
-if [ "$SKIP_KERNEL_PATCHES" -eq 0 ]; then
-    cd "$WORK_DIR/common"
-    for p in "$BUILDER_DIR/kernel_patches/"*; do
-        if ! git am -3 <"$p"; then
-            patch -p1 <"$p"
-            git add .
-            git am --continue || exit 1
-        fi
-    done
-fi
 
 ## susfs4ksu
 if [ -n "$USE_KSU_SUSFS" ]; then
