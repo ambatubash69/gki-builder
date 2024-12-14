@@ -89,6 +89,9 @@ KERNEL_VERSION=$(make kernelversion)
 LAST_COMMIT_KERNEL=$(git log --format="%s" -n 1)
 cd "$WORK_DIR"
 
+# Set aosp clang version
+sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
+
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
 
