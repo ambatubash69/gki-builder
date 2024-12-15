@@ -28,12 +28,18 @@ CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest"
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
-ZIP_NAME="gki-KVER-KSU-$RANDOM_HASH.zip"
+ZIP_NAME="gki-KVER-OPTIONE-$RANDOM_HASH.zip"
 AOSP_CLANG_VERSION="r536225"
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
 # Import telegram functions
 . "$BUILDER_DIR/telegram_functions.sh"
+
+# if ksu = yes
+ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE/KSU/g')
+
+# if ksu = no
+ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE-//g')
 
 ## Install needed packages
 sudo apt update -y
@@ -76,17 +82,19 @@ git clone --depth=1 "https://gitlab.com/crdroidandroid/android_prebuilts_clang_h
 COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
 
 ## KernelSU setup
-curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
-cd "$WORK_DIR/KernelSU"
-KSU_VERSION=$(git describe --abbrev=0 --tags)
-cd "$WORK_DIR"
+if [ -n "$USE_KSU" ]; then
+    curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
+    cd "$WORK_DIR/KernelSU"
+    KSU_VERSION=$(git describe --abbrev=0 --tags)
+    cd "$WORK_DIR"
+fi
 
 ## Apply kernel patches
 git config --global user.email "eraselk@proton.me"
 git config --global user.name "eraselk"
 
 ## susfs4ksu
-if [ -n "$USE_KSU_SUSFS" ]; then
+if [ -n "$USE_KSU_SUSFS" ] && [ -n "$USE_KSU" ]; then
     git clone --depth=1 "https://gitlab.com/simonpunk/susfs4ksu" -b "gki-${GKI_VERSION}"
     SUSFS_PATCHES="$WORK_DIR/susfs4ksu/kernel_patches"
     SUSFS_MODULE="$WORK_DIR/susfs4ksu/ksu_module_susfs"
@@ -108,16 +116,20 @@ if [ -n "$USE_KSU_SUSFS" ]; then
     
     SUSFS_VERSION=$(grep -E '^#define SUSFS_VERSION' ./include/linux/susfs.h | cut -d' ' -f3 | sed 's/"//g')
     SUSFS_MODULE_ZIP="ksu_module_susfs_${SUSFS_VERSION}.zip"
+else
+    echo "[ERROR] You can't use SUSFS without KSU enabled!"
+    exit 1
 fi
 
 cd "$WORK_DIR"
 
 text=$(cat <<EOF
-*~~~ GKI KSU CI ~~~*
+*~~~ GKI CI ~~~*
 *GKI Version*: \`${GKI_VERSION}\`
 *Kernel Version*: \`${KERNEL_VERSION}\`
-*KSU Version*: \`${KSU_VERSION}\`
-*Include SUSFS*: \`$([ -n "${USE_KSU_SUSFS}" ] && echo "true" || echo "false")\`
+*KSU*: \`$([ -n "$USE_KSU" ] && echo "true" || echo "false")\`
+$([ -n "$USE_KSU" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
+*SUSFS*: \`$([ -n "${USE_KSU_SUSFS}" ] && echo "true" || echo "false")\`
 $([ -n "${USE_KSU_SUSFS}" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
 *LTO Mode*: \`${LTO_TYPE}\`
 *Host OS*: \`$(lsb_release -d -s)\`
@@ -159,11 +171,17 @@ else
     ## Zipping
     cd "$WORK_DIR/anykernel"
     sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
+    
+    if [ -z "$USE_KSU" ]; then
+        sed -i "s/KSUDUMMY2//g" anykernel.sh
+    fi
+    
     if [ -z "$USE_KSU_SUSFS" ]; then
         sed -i "s/DUMMY2//g" anykernel.sh
     else
         sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
     fi
+    
     cp "$KERNEL_IMAGE" .
     zip -r9 "$ZIP_NAME" * -x LICENSE
     mv "$ZIP_NAME" "$WORK_DIR"
@@ -176,7 +194,7 @@ else
         cd "$WORK_DIR"
     fi
 
-    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION // KSU ${KSU_VERSION}$([ -n "$USE_KSU_SUSFS" ] && echo " // SUSFS $SUSFS_VERSION")"
+    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION$([ -n "$USE_KSU" ] && echo " // KSU ${KSU_VERSION}")$([ -n "$USE_KSU_SUSFS" ] && echo " // SUSFS $SUSFS_VERSION")"
     if [ -n "$USE_KSU_SUSFS" ]; then
         upload_file "$WORK_DIR/$SUSFS_MODULE_ZIP" "SUSFS Module"
     fi
