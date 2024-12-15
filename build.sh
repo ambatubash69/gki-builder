@@ -24,7 +24,7 @@ LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
 
 # Common
 GKI_VERSION="android12-5.10"
-CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest"
+CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest" 
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
@@ -36,10 +36,12 @@ KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 . "$BUILDER_DIR/telegram_functions.sh"
 
 # if ksu = yes
-ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE/KSU/g')
-
-# if ksu = no
-ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE-//g')
+if [ -n "$USE_KSU" ]; then
+    ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE/KSU/g')
+else
+    # if ksu = no
+    ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/OPTIONE-//g')
+fi
 
 ## Install needed packages
 sudo apt update -y
@@ -101,7 +103,7 @@ if [ -n "$USE_KSU_SUSFS" ] && [ -n "$USE_KSU" ]; then
     ZIP_NAME=$(echo "$ZIP_NAME" | sed 's/KSU/KSUxSUSFS/g')
     cd "$WORK_DIR/susfs4ksu"
     LAST_COMMIT_SUSFS=$(git log --format="%s" -n 1)
-
+    
     cd "$WORK_DIR/common"
     cp "$SUSFS_PATCHES/50_add_susfs_in_gki-${GKI_VERSION}.patch" .
     cp "$SUSFS_PATCHES/fs/susfs.c" ./fs/
@@ -110,10 +112,10 @@ if [ -n "$USE_KSU_SUSFS" ] && [ -n "$USE_KSU" ]; then
     cp "$SUSFS_PATCHES/include/linux/sus_su.h" ./include/linux/
     cd "$WORK_DIR/KernelSU"
     cp "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch" .
-    patch -p1 <10_enable_susfs_for_ksu.patch || exit 1
+    patch -p1 < 10_enable_susfs_for_ksu.patch || exit 1
     cd "$WORK_DIR/common"
-    patch -p1 <50_add_susfs_in_gki-${GKI_VERSION}.patch || exit 1
-
+    patch -p1 < 50_add_susfs_in_gki-${GKI_VERSION}.patch || exit 1
+    
     SUSFS_VERSION=$(grep -E '^#define SUSFS_VERSION' ./include/linux/susfs.h | cut -d' ' -f3 | sed 's/"//g')
     SUSFS_MODULE_ZIP="ksu_module_susfs_${SUSFS_VERSION}.zip"
 else
@@ -123,8 +125,7 @@ fi
 
 cd "$WORK_DIR"
 
-text=$(
-    cat <<EOF
+text=$(cat <<EOF
 *~~~ GKI CI ~~~*
 *GKI Version*: \`${GKI_VERSION}\`
 *Kernel Version*: \`${KERNEL_VERSION}\`
@@ -134,7 +135,7 @@ $([ -n "$USE_KSU" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
 $([ -n "${USE_KSU_SUSFS}" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
 *LTO Mode*: \`${LTO_TYPE}\`
 *Host OS*: \`$(lsb_release -d -s)\`
-*CPU Cores*: \`$(($(nproc --all) - 1))\`
+*CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
 *Zip Output*: \`${ZIP_NAME}\`
 *Compiler*: \`${COMPILER_STRING}\`
 *Last Commit (Builder)*:
@@ -161,7 +162,7 @@ send_msg "$text"
 set +e
 
 ## Build GKI
-LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(($(nproc --all) - 1)) | tee "$WORK_DIR/build_log.txt"
+LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt"
 
 set -e
 
@@ -172,22 +173,22 @@ else
     ## Zipping
     cd "$WORK_DIR/anykernel"
     sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
-
+    
     if [ -z "$USE_KSU" ]; then
         sed -i "s/KSUDUMMY2 //g" anykernel.sh
     fi
-
+    
     if [ -z "$USE_KSU_SUSFS" ]; then
         sed -i "s/DUMMY2//g" anykernel.sh
     else
         sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
     fi
-
+    
     cp "$KERNEL_IMAGE" .
     zip -r9 "$ZIP_NAME" * -x LICENSE
     mv "$ZIP_NAME" "$WORK_DIR"
     cd "$WORK_DIR"
-
+    
     if [ -n "$USE_KSU_SUSFS" ]; then
         cd "$SUSFS_MODULE"
         zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
