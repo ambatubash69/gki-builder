@@ -128,10 +128,10 @@ text=$(cat <<EOF
 *~~~ GKI CI ~~~*
 *GKI Version*: \`${GKI_VERSION}\`
 *Kernel Version*: \`${KERNEL_VERSION}\`
-*KSU*: \`$([ -n "$USE_KSU" ] && echo "true" || echo "false")\`
-$([ -n "$USE_KSU" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
-*SUSFS*: \`$([ -n "${USE_KSU_SUSFS}" ] && echo "true" || echo "false")\`
-$([ -n "${USE_KSU_SUSFS}" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
+*KSU*: \`$([ "$USE_KSU" == "yes" ] && echo "true" || echo "false")\`
+$([ "$USE_KSU" == "yes" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
+*SUSFS*: \`$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "true" || echo "false")\`
+$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
 *LTO Mode*: \`${LTO_TYPE}\`
 *Host OS*: \`$(lsb_release -d -s)\`
 *CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
@@ -145,11 +145,11 @@ ${LAST_COMMIT_BUILDER}
 \`\`\`
 ${LAST_COMMIT_KERNEL}
 \`\`\`
-$([ -n "${USE_KSU_SUSFS}" ] && echo "*Last Commit (SUSFS)*:
+$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "*Last Commit (SUSFS)*:
 \`\`\`
 ${LAST_COMMIT_SUSFS}
 \`\`\`")
-$([ -n "${NOTE}" ] && echo "*Release Note*:
+$([ "${NOTE}" ] && echo "*Release Note*:
 \`\`\`
 ${NOTE}
 \`\`\`")
@@ -188,14 +188,14 @@ else
     mv "$ZIP_NAME" "$WORK_DIR"
     cd "$WORK_DIR"
     
-    if [ -n "$USE_KSU_SUSFS" ]; then
+    if [ "$USE_KSU_SUSFS" == "yes" ]; then
         cd "$SUSFS_MODULE"
         zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
         mv "$SUSFS_MODULE_ZIP" "$WORK_DIR"
         cd "$WORK_DIR"
     fi
-    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION$([ -n "$USE_KSU" ] && echo " // KSU ${KSU_VERSION}")$([ -n "$USE_KSU_SUSFS" ] && echo " // SUSFS $SUSFS_VERSION")"
-    if [ -n "$USE_KSU_SUSFS" ]; then
+    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION$([ "$USE_KSU" == "yes" ] && echo " // KSU ${KSU_VERSION}")$([ "$USE_KSU_SUSFS" == "yes" ] && echo " // SUSFS $SUSFS_VERSION")"
+    if [ "$USE_KSU_SUSFS" == "yes" ]; then
         upload_file "$WORK_DIR/$SUSFS_MODULE_ZIP" "SUSFS Module"
     fi
     upload_file "$WORK_DIR/build_log.txt" "Build Log"
