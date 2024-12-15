@@ -52,6 +52,10 @@ sudo chmod +x /usr/bin/repo
 ## Clone AnyKernel
 git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykernel"
 
+# Set swappiness
+sudo sysctl vm.swappiness=100
+sudo sysctl -p
+
 # Repo sync
 repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
 repo sync -j$(nproc --all) --force-sync
