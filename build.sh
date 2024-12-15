@@ -76,6 +76,12 @@ sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
 
+## Clone crdroid's clang
+rm -rf "$WORK_DIR/prebuilts-master"
+mkdir -p "$WORK_DIR/prebuilts-master/clang/host/linux-x86"
+git clone --depth=1 "https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-${AOSP_CLANG_VERSION}" "$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}"
+COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
+
 ## KernelSU setup
 if [ "${USE_KSU}" == "yes" ]; then
     curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
@@ -114,4 +120,83 @@ if [ "${USE_KSU}" == "yes" ] && [ "${USE_KSU_SUSFS}" == "yes" ]; then
 elif [ "${USE_KSU_SUSFS}" == "yes" ]; then
     echo "[ERROR] You can't use SUSFS without KSU enabled!"
     exit 1
+fi
+
+cd "$WORK_DIR"
+
+text=$(cat <<EOF
+*~~~ GKI CI ~~~*
+*GKI Version*: \`${GKI_VERSION}\`
+*Kernel Version*: \`${KERNEL_VERSION}\`
+*KSU*: \`$([ -n "$USE_KSU" ] && echo "true" || echo "false")\`
+$([ -n "$USE_KSU" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
+*SUSFS*: \`$([ -n "${USE_KSU_SUSFS}" ] && echo "true" || echo "false")\`
+$([ -n "${USE_KSU_SUSFS}" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
+*LTO Mode*: \`${LTO_TYPE}\`
+*Host OS*: \`$(lsb_release -d -s)\`
+*CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
+*Zip Output*: \`${ZIP_NAME}\`
+*Compiler*: \`${COMPILER_STRING}\`
+*Last Commit (Builder)*:
+\`\`\`
+${LAST_COMMIT_BUILDER}
+\`\`\`
+*Last Commit (Kernel)*:
+\`\`\`
+${LAST_COMMIT_KERNEL}
+\`\`\`
+$([ -n "${USE_KSU_SUSFS}" ] && echo "*Last Commit (SUSFS)*:
+\`\`\`
+${LAST_COMMIT_SUSFS}
+\`\`\`")
+$([ -n "${NOTE}" ] && echo "*Release Note*:
+\`\`\`
+${NOTE}
+\`\`\`")
+EOF
+)
+
+send_msg "$text"
+
+set +e
+
+## Build GKI
+LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt"
+
+set -e
+
+if ! [ -f "$KERNEL_IMAGE" ]; then
+    send_msg "Build failed!"
+    upload_file "$WORK_DIR/build_log.txt" "Build Log"
+else
+    ## Zipping
+    cd "$WORK_DIR/anykernel"
+    sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
+    
+    if [ -z "$USE_KSU" ]; then
+        sed -i "s/KSUDUMMY2 //g" anykernel.sh
+    fi
+    
+    if [ -z "$USE_KSU_SUSFS" ]; then
+        sed -i "s/DUMMY2//g" anykernel.sh
+    else
+        sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
+    fi
+    
+    cp "$KERNEL_IMAGE" .
+    zip -r9 "$ZIP_NAME" * -x LICENSE
+    mv "$ZIP_NAME" "$WORK_DIR"
+    cd "$WORK_DIR"
+    
+    if [ -n "$USE_KSU_SUSFS" ]; then
+        cd "$SUSFS_MODULE"
+        zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
+        mv "$SUSFS_MODULE_ZIP" "$WORK_DIR"
+        cd "$WORK_DIR"
+    fi
+    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION$([ -n "$USE_KSU" ] && echo " // KSU ${KSU_VERSION}")$([ -n "$USE_KSU_SUSFS" ] && echo " // SUSFS $SUSFS_VERSION")"
+    if [ -n "$USE_KSU_SUSFS" ]; then
+        upload_file "$WORK_DIR/$SUSFS_MODULE_ZIP" "SUSFS Module"
+    fi
+    upload_file "$WORK_DIR/build_log.txt" "Build Log"
 fi
