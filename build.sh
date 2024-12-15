@@ -125,7 +125,7 @@ text=$(cat <<EOF
 $([ -n "${USE_KSU_SUSFS}" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
 *LTO Mode*: \`${LTO_TYPE}\`
 *Host OS*: \`$(lsb_release -d -s)\`
-*CPU Cores*: \`$(nproc --all)\`
+*CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
 *Zip Output*: \`${ZIP_NAME}\`
 *Compiler*: \`${COMPILER_STRING}\`
 *Last Commit (Builder)*:
@@ -152,7 +152,7 @@ send_msg "$text"
 set +e
 
 ## Build GKI
-LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(nproc --all) | tee "$WORK_DIR/build_log.txt"
+LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt"
 
 set -e
 
