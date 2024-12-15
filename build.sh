@@ -36,13 +36,9 @@ KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 . "$BUILDER_DIR/telegram_functions.sh"
 
 ## Install needed packages
-sudo add-apt-repository universe -y
 sudo apt update -y
 sudo apt upgrade -y
-sudo apt install -y bc bison build-essential curl flex glibc-source git gnupg gperf imagemagick \
-    lib32tinfo6 liblz4-tool libncurses6 libncurses-dev libsdl1.2-dev libssl-dev \
-    libwxgtk3.2-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools \
-    xsltproc zip zlib1g-dev python3
+sudo apt install -y automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 rename libelf-dev dwarves rsync
 
 ## Install Google's repo
 curl -o repo https://storage.googleapis.com/git-repo-downloads/repo

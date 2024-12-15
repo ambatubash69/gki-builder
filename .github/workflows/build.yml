@@ -6,7 +6,7 @@ on:
     LTO:
      description: 'LTO Type'
      required: true
-     default: 'thin'
+     default: ''
      type: choice
      options:
      - 'full'
@@ -27,7 +27,7 @@ on:
 jobs:
   build:
     name: Build GKI Kernel 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     
     steps:
     - name: Checkout
@@ -36,7 +36,7 @@ jobs:
     - name: Swap Space
       uses: pierotofy/set-swap-space@master
       with:
-        swap-size-gb: 16
+        swap-size-gb: 12
         
     - name: Free up storage
       uses: rokibhasansagar/slimhub_actions@main
