@@ -2,7 +2,6 @@
 upload_file()
 {
     local file="$1"
-    local msg="$2"
 
     if [[ -f "$file" ]]; then
         chmod 777 "$file"
@@ -15,7 +14,6 @@ upload_file()
         -F chat_id="$chat_id" \
         -F "disable_web_page_preview=true" \
         -F "parse_mode=markdown" \
-        -F caption="$msg" \
         -o /dev/null
 }
 

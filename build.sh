@@ -28,7 +28,7 @@ CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest"
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
-ZIP_NAME="gki-KVER-OPTIONE-$RANDOM_HASH.zip"
+ZIP_NAME="ambatubash69-KVER-OPTIONE-$RANDOM_HASH.zip"
 AOSP_CLANG_VERSION="r536225"
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
@@ -129,9 +129,9 @@ text=$(cat <<EOF
 *GKI Version*: \`${GKI_VERSION}\`
 *Kernel Version*: \`${KERNEL_VERSION}\`
 *KSU*: \`$([ "$USE_KSU" == "yes" ] && echo "true" || echo "false")\`
-$([ "$USE_KSU" == "yes" ] && echo "*KSU Version*: \`${KSU_VERSION}\`")
+*KSU Version*: \`$([ "$USE_KSU" == "yes" ] && echo "$KSU_VERSION" || echo "null")\`
 *SUSFS*: \`$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "true" || echo "false")\`
-$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "*SUSFS Version*: \`${SUSFS_VERSION}\`")
+*SUSFS Version*: \`$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "$SUSFS_VERSION" || echo "null")\`
 *LTO Mode*: \`${LTO_TYPE}\`
 *Host OS*: \`$(lsb_release -d -s)\`
 *CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
@@ -158,45 +158,42 @@ EOF
 
 send_msg "$text"
 
+# Build GKI
 set +e
-
-## Build GKI
-LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt"
-
+LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt" 2>&1
 set -e
 
+# Upload to telegram
 if ! [ -f "$KERNEL_IMAGE" ]; then
-    send_msg "Build failed!"
-    upload_file "$WORK_DIR/build_log.txt" "Build Log"
+    send_msg "❌ GKI Build failed!"
+    upload_file "$WORK_DIR/build_log.txt"
 else
+    send_msg "✅ GKI Build succeeded"
+    
     ## Zipping
     cd "$WORK_DIR/anykernel"
     sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
-    
     if [ -z "$USE_KSU" ]; then
         sed -i "s/KSUDUMMY2 //g" anykernel.sh
     fi
-    
     if [ -z "$USE_KSU_SUSFS" ]; then
         sed -i "s/DUMMY2//g" anykernel.sh
     else
         sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
-    fi
-    
+    fi 
     cp "$KERNEL_IMAGE" .
     zip -r9 "$ZIP_NAME" * -x LICENSE
     mv "$ZIP_NAME" "$WORK_DIR"
     cd "$WORK_DIR"
+    upload_file "$WORK_DIR/$ZIP_NAME"
     
     if [ "$USE_KSU_SUSFS" == "yes" ]; then
         cd "$SUSFS_MODULE"
         zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
         mv "$SUSFS_MODULE_ZIP" "$WORK_DIR"
         cd "$WORK_DIR"
+        upload_file "$WORK_DIR/$SUSFS_MODULE_ZIP"
     fi
-    upload_file "$WORK_DIR/$ZIP_NAME" "GKI $KERNEL_VERSION$([ "$USE_KSU" == "yes" ] && echo " // KSU ${KSU_VERSION}")$([ "$USE_KSU_SUSFS" == "yes" ] && echo " // SUSFS $SUSFS_VERSION")"
-    if [ "$USE_KSU_SUSFS" == "yes" ]; then
-        upload_file "$WORK_DIR/$SUSFS_MODULE_ZIP" "SUSFS Module"
-    fi
-    upload_file "$WORK_DIR/build_log.txt" "Build Log"
+
+    upload_file "$WORK_DIR/build_log.txt"
 fi
