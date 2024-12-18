@@ -56,10 +56,6 @@ sudo chmod +x /usr/bin/repo
 ## Clone AnyKernel
 git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykernel"
 
-# Set swappiness
-sudo sysctl vm.swappiness=100
-sudo sysctl -p
-
 # Repo sync
 repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
 repo sync -j$(nproc --all) --force-sync
@@ -117,7 +113,7 @@ if [ "${USE_KSU}" == "yes" ] && [ "${USE_KSU_SUSFS}" == "yes" ]; then
 
     SUSFS_VERSION=$(grep -E '^#define SUSFS_VERSION' ./include/linux/susfs.h | cut -d' ' -f3 | sed 's/"//g')
     SUSFS_MODULE_ZIP="ksu_module_susfs_${SUSFS_VERSION}.zip"
-elif [ "${USE_KSU_SUSFS}" == "yes" ]; then
+elif [ "${USE_KSU_SUSFS}" == "yes" ] && [ "$USE_KSU" != "yes" ]; then
     echo "[ERROR] You can't use SUSFS without KSU enabled!"
     exit 1
 fi
@@ -160,7 +156,7 @@ send_msg "$text"
 
 # Build GKI
 set +e
-LTO=$LTO_TYPE BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) | tee "$WORK_DIR/build_log.txt" 2>&1
+LTO="$LTO_TYPE" BUILD_CONFIG=common/build.config.gki.aarch64 build/build.sh -j$(( $(nproc --all) - 1 )) 2>&1 | tee "$WORK_DIR/build_log.txt"
 set -e
 
 # Upload to telegram
