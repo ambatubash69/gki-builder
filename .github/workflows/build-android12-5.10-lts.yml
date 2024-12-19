@@ -65,7 +65,7 @@ jobs:
                 wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir clang
                 tar -C clang/ -xf *.tar.*
-                rm *.tar.*
+                rm -f *.tar.*
             else
                 git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang --depth=1
             fi        
@@ -95,7 +95,7 @@ jobs:
             tar -C ./gcc-32/ -zxf *.tar.gz
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
         fi
-        rm *.tar.gz
+        rm -f *.tar.gz
 
     - name: Download Custom Gcc
       if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true' && env.ENABLE_AOSP_GCC_ARM32 == 'false' && env.ENABLE_AOSP_GCC_ARM64 == 'false'
@@ -134,7 +134,8 @@ jobs:
           fi
           echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
         fi
-        rm *.tar.* || rm *.zip
+        rm -f *.tar.*
+        rm -f *.zip
         
     - name: Download the kernel source code
       run: |
