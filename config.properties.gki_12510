@@ -20,7 +20,7 @@ AOSP_CLANG_BRANCH=main
 AOSP_CLANG_VERSION=r536225
 
 USE_CUSTOM_CLANG=true
-CUSTOM_CLANG_SOURCE=https://github.com/ZyCromerZ/Clang/releases/download/12.0.1-20230207-release/Clang-12.0.1-20230207.tar.gz
+CUSTOM_CLANG_SOURCE=https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-20240723-release/Clang-19.0.0git-20240723.tar.gz
 CUSTOM_CLANG_BRANCH=
 CUSTOM_CLANG_COMMAND=
 
