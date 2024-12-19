@@ -148,7 +148,7 @@ jobs:
       if: inputs.KSU == true
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        curl -LSs "${{ env.KERNELSU_INSTALLER }}" | bash -
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION1/KSU/g")" >> $GITHUB_ENV
 
     - name: Setup SUSFS for KSU
