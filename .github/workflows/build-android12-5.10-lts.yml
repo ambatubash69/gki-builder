@@ -36,7 +36,7 @@ jobs:
       run: |
         echo "BUILD_TIME=$(TZ=Asia/Makassar date "+%Y%m%d-%H%M")" >> $GITHUB_ENV
         sudo apt update
-        sudo apt install -y git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 rename libelf-dev dwarves
+        sudo apt install -y git ccache automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 rename libelf-dev dwarves zstd
         sudo apt list --upgradable
         sudo apt upgrade
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
@@ -61,11 +61,11 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         if [[ ${{ env.CUSTOM_CLANG_SOURCE }} =~ git ]]; then
-            if [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O clang.tar.gz ${{ env.CUSTOM_CLANG_SOURCE }}
+            if [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.'* ]]; then
+                wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir clang
-                tar -C clang/ -zxvf clang.tar.gz
-                rm -rf clang.tar.gz
+                tar -C clang/ -zxvf *.tar.*
+                rm *.tar.*
             else
                 git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang --depth=1
             fi        
@@ -84,17 +84,18 @@ jobs:
         cd $GITHUB_WORKSPACE/kernel_workspace
         if [ ${{ env.ENABLE_AOSP_GCC_ARM64 }} = true ]; then
             mkdir gcc-64
-            wget -O gcc-aarch64.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/aarch64/${{ env.AOSP_GCC_ARM64_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
-            tar -C ./gcc-64/ -zxvf gcc-aarch64.tar.gz
+            wget https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/aarch64/${{ env.AOSP_GCC_ARM64_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
+            tar -C ./gcc-64/ -zxvf *.tar.gz
             echo "GCC_64=CROSS_COMPILE=$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin/aarch64-linux-android-" >> $GITHUB_ENV
         fi
 
         if [ ${{ env.ENABLE_AOSP_GCC_ARM32 }} = true ]; then
             mkdir gcc-32
-            wget -O gcc-arm.tar.gz https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/arm/${{ env.AOSP_GCC_ARM32_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
-            tar -C ./gcc-32/ -zxvf gcc-arm.tar.gz
+            wget -O https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/arm/${{ env.AOSP_GCC_ARM32_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
+            tar -C ./gcc-32/ -zxvf *.tar.gz
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
         fi
+        rm *.tar.gz
 
     - name: Download Custom Gcc
       if: env.USE_CUSTOM_GCC_64 == 'true' || env.USE_CUSTOM_GCC_32 == 'true' && env.ENABLE_AOSP_GCC_ARM32 == 'false' && env.ENABLE_AOSP_GCC_ARM64 == 'false'
@@ -102,10 +103,10 @@ jobs:
         cd $GITHUB_WORKSPACE/kernel_workspace
         if [ ${{ env.USE_CUSTOM_GCC_64 }} = true ]; then
           if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} =~ git ]]; then
-              if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O gcc-64.tar.gz ${{ env.CUSTOM_CLANG_SOURCE }}
+              if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.'* ]]; then
+                wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir gcc-64
-                tar -C gcc-64/ -zxvf gcc-64.tar.gz
+                tar -C gcc-64/ -zxvf *.tar.*
               else
                 git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
               fi
@@ -119,10 +120,10 @@ jobs:
 
         if [ ${{ env.USE_CUSTOM_GCC_32 }} = true ]; then
           if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} =~ git ]]; then
-              if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.gz' ]]; then
-                wget -O gcc-32.tar.gz ${{ env.CUSTOM_CLANG_SOURCE }}
+              if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.'* ]]; then
+                wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir gcc-32
-                tar -C gcc-32/ -zxvf gcc-32.tar.gz
+                tar -C gcc-32/ -zxvf *.tar.*
               else
                 git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
               fi
@@ -133,6 +134,7 @@ jobs:
           fi
           echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/${{ env.CUSTOM_GCC_32_BIN }}" >> $GITHUB_ENV
         fi
+        rm *.tar.* || rm *.zip
         
     - name: Download the kernel source code
       run: |
