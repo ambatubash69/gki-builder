@@ -20,7 +20,7 @@ AOSP_CLANG_BRANCH=main
 AOSP_CLANG_VERSION=r536225
 
 USE_CUSTOM_CLANG=true
-CUSTOM_CLANG_SOURCE=https://github.com/ZyCromerZ/Clang/releases/download/19.0.0git-20240723-release/Clang-19.0.0git-20240723.tar.gz
+CUSTOM_CLANG_SOURCE=https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst
 CUSTOM_CLANG_BRANCH=
 CUSTOM_CLANG_COMMAND=
 
