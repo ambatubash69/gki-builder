@@ -1,7 +1,7 @@
 ARCH=arm64
 
 # ZIP Name
-ZIP_NAME=ambatubash69-KVER-OPTION1-OPTION2
+ZIP_NAME=ambatubash69-KVER-OPTION1-OPTION2.zip
 
 # Anykernel
 ANYKERNEL_REPO=https://github.com/ambatubash69/AnyKernel3
