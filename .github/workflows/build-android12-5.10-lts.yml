@@ -26,9 +26,7 @@ jobs:
     - name: Read the configuration
       run: |
         CONFIG_ENV=$GITHUB_WORKSPACE/config.properties.gki_12510
-        for i in $(cat $CONFIG_ENV | grep -v '#' | cut -f1 -d'='); do
-            echo "$i=$(cat $CONFIG_ENV | grep -w "$i" | cut -f2 -d'=')" >> $GITHUB_ENV
-        done
+        grep -v '^#' "$CONFIG_ENV" | grep '=' | awk -F= '{print $1 "=" $2}' >> $GITHUB_ENV
  
     - name: Setting up the kernel compilation environment
       run: |
@@ -72,6 +70,7 @@ jobs:
             else
                 echo "[ERROR] You must specify CUSTOM_CLANG_COMMAND in config file!"
                 exit 1
+            fi
         fi
 
     - name: Download AOSP GCC
