@@ -137,7 +137,7 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         git clone ${{ env.KERNEL_SOURCE }} -b ${{ env.KERNEL_SOURCE_BRANCH }} android-kernel --depth=1
-        cd $GITHUB_WORKSPACE/android-kernel
+        cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         echo "KVER=$(make kernelversion 2>/dev/null)" >> $GITHUB_ENV
     
     - name: Setup KernelSU
@@ -174,7 +174,7 @@ jobs:
     - name: Build kernel
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
-        export PATH=$GITHUB_WORKSPACE/kernel_workspace/clang/bin:$PATH
+        export PATH="$GITHUB_WORKSPACE/kernel_workspace/clang/bin:$GITHUB_WORKSPACE/kernel_workspace/gcc-64/bin:$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin:$PATH"
         export KBUILD_BUILD_HOST=gacorprjkt
         export KBUILD_BUILD_USER=${{ github.actor }}
         
@@ -185,8 +185,9 @@ jobs:
       run: |
        cd $GITHUB_WORKSPACE/kernel_workspace
        if [ ! -f android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} ]; then
-           echo "Kernel output file is empty"
-           exit 1
+            export TOKEN="${{ secrets.TOKEN }}"
+            export CHAT_ID="${{ secrets.CHAT_ID }}"
+            $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/build.log"
        fi
   
     - name: Set ZIP Name for Non KSU
