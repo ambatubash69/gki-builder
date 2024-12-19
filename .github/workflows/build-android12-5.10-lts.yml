@@ -43,7 +43,7 @@ jobs:
         swap-size-gb: 12
 
     - name: Download AOSP Clang
-      if:env.USE_AOSP_CLANG == 'true' && env.USE_CUSTOM_CLANG == 'false'
+      if: env.USE_AOSP_CLANG == 'true' && env.USE_CUSTOM_CLANG == 'false'
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         mkdir clang
