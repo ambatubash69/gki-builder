@@ -1,4 +1,5 @@
 name: Build GKI
+
 on:
   workflow_dispatch:
     inputs:
@@ -17,13 +18,14 @@ jobs:
   build:
     name: Build GKI by ${{ github.actor }}
     runs-on: ubuntu-22.04
+    
     steps:
     - name: Check out
       uses: actions/checkout@v4
 
     - name: Read the configuration
       run: |
-        CONFIG_ENV=config.properties.gki_12510
+        CONFIG_ENV=$GITHUB_WORKSPACE/config.properties.gki_12510
         for i in $(cat $CONFIG_ENV | grep -v '#' | cut -f1 -d'='); do
             echo "$i=$(cat $CONFIG_ENV | grep -w "$i" | cut -f2 -d'=')" >> $GITHUB_ENV
         done
@@ -223,13 +225,11 @@ jobs:
       run: |
         export TOKEN="${{ secrets.TOKEN }}"
         export CHAT_ID="${{ secrets.CHAT_ID }}"
-        $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.ZIP_NAME }}
+        $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.ZIP_NAME }}"
 
     - name: Release to Telegram (susfs module)
       if: inputs.SUSFS == 'true' && inputs.KSU == 'true'
       run: |
         export TOKEN="${{ secrets.TOKEN }}"
         export CHAT_ID="${{ secrets.CHAT_ID }}"
-        $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.SUSFS_MODULE_ZIP }}
-        
-      
+        $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.SUSFS_MODULE_ZIP }}"
