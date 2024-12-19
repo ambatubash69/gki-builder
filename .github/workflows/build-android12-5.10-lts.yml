@@ -202,6 +202,7 @@ jobs:
         
     - name: Zipping Kernel
       run: |
+        set -x
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g")" >> $GITHUB_ENV
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV
         
@@ -223,7 +224,7 @@ jobs:
         
         zip -r9 ${{ env.ZIP_NAME }} * -x LICENSE
         mv ${{ env.ZIP_NAME }} $GITHUB_WORKSPACE/kernel_workspace
-      
+        set +x
     - name: Zipping SUSFS module
       if: inputs.SUSFS == true && inputs.KSU == true
       run: |
