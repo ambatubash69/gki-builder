@@ -26,7 +26,11 @@ jobs:
     - name: Read the configuration
       run: |
         CONFIG_ENV=$GITHUB_WORKSPACE/config.properties.gki_12510
-        grep -v '^#' "$CONFIG_ENV" | grep '=' | awk -F= '{print $1 "=" $2}' >> $GITHUB_ENV
+        grep -v '^#' "$CONFIG_ENV" | grep '=' | while IFS= read -r line; do
+            key=$(echo "$line" | cut -d'=' -f1)
+            value=$(echo "$line" | cut -d'=' -f2-)
+            echo "$key=$value" >> $GITHUB_ENV
+        done
  
     - name: Setting up the kernel compilation environment
       run: |
@@ -65,7 +69,7 @@ jobs:
                 git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang --depth=1
             fi        
         else
-            if [[ -n ${{ env.CUSTOM_CLANG_COMMAND }} ]]; then
+            if [[ -n "${{ env.CUSTOM_CLANG_COMMAND }}" ]]; then
                 bash -c "${{ env.CUSTOM_CLANG_COMMAND }}"
             else
                 echo "[ERROR] You must specify CUSTOM_CLANG_COMMAND in config file!"
