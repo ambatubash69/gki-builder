@@ -40,6 +40,7 @@ jobs:
         sudo apt list --upgradable
         sudo apt upgrade
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
+        chmod +x $GITHUB_WORKSPACE/*.sh
 
     - name: Set Swap
       uses: pierotofy/set-swap-space@master
