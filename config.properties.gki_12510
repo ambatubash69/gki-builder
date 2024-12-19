@@ -4,8 +4,8 @@ ARCH=arm64
 ZIP_NAME=ambatubash69-KVER-OPTION1-OPTION2
 
 # Anykernel
-ANYKERNEL_REPO
-ANYKERNEL_BRANCH
+ANYKERNEL_REPO=https://github.com/ambatubash69/AnyKernel3
+ANYKERNEL_BRANCH=feature/build-with-no-manifest
 
 # Kernel Source
 KERNEL_SOURCE=https://github.com/ambatubash69/gki_android12-5.10
@@ -44,5 +44,5 @@ CUSTOM_GCC_32_BIN=arm-linux-androideabi-
 
 BUILDER_HOST=ci
 
-TC_CUSTOM_CMDS:CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu-
-EXTRA_CMDS:CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip
+TC_CUSTOM_CMDS=CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu-
+EXTRA_CMDS=CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip
