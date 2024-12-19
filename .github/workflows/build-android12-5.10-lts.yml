@@ -188,6 +188,7 @@ jobs:
             export TOKEN="${{ secrets.TOKEN }}"
             export CHAT_ID="${{ secrets.CHAT_ID }}"
             $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/build.log"
+            exit 1
        fi
   
     - name: Set ZIP Name for Non KSU
