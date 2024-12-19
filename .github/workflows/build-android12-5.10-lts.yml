@@ -91,7 +91,7 @@ jobs:
 
         if [ ${{ env.ENABLE_AOSP_GCC_ARM32 }} = true ]; then
             mkdir gcc-32
-            wget -O https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/arm/${{ env.AOSP_GCC_ARM32_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
+            wget https://android.googlesource.com/platform/prebuilts/gcc/${{ env.AOSP_GCC_SYSTEM }}/arm/${{ env.AOSP_GCC_ARM32_VERSION }}/+archive/refs/tags/android-${{ env.AOSP_GCC_ANDROID_VERSION }}_${{ env.AOSP_GCC_RELEASE }}.tar.gz
             tar -C ./gcc-32/ -zxvf *.tar.gz
             echo "GCC_32=CROSS_COMPILE_ARM32=$GITHUB_WORKSPACE/kernel_workspace/gcc-32/bin/arm-linux-androideabi-" >> $GITHUB_ENV
         fi
