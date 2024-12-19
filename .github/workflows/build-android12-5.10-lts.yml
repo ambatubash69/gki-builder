@@ -64,7 +64,7 @@ jobs:
             if [[ ${{ env.CUSTOM_CLANG_SOURCE }} == *'.tar.'* ]]; then
                 wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir clang
-                tar -C clang/ -zxvf *.tar.*
+                tar -C clang/ -xvf *.tar.*
                 rm *.tar.*
             else
                 git clone ${{ env.CUSTOM_CLANG_SOURCE }} -b ${{ env.CUSTOM_CLANG_BRANCH }} clang --depth=1
@@ -106,7 +106,7 @@ jobs:
               if [[ ${{ env.CUSTOM_GCC_64_SOURCE }} == *'.tar.'* ]]; then
                 wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir gcc-64
-                tar -C gcc-64/ -zxvf *.tar.*
+                tar -C gcc-64/ -xvf *.tar.*
               else
                 git clone ${{ env.CUSTOM_GCC_64_SOURCE }} -b ${{ env.CUSTOM_GCC_64_BRANCH }} gcc-64 --depth=1
               fi
@@ -123,7 +123,7 @@ jobs:
               if [[ ${{ env.CUSTOM_GCC_32_SOURCE }} == *'.tar.'* ]]; then
                 wget ${{ env.CUSTOM_CLANG_SOURCE }}
                 mkdir gcc-32
-                tar -C gcc-32/ -zxvf *.tar.*
+                tar -C gcc-32/ -xvf *.tar.*
               else
                 git clone ${{ env.CUSTOM_GCC_32_SOURCE }} -b ${{ env.CUSTOM_GCC_32_BRANCH }} gcc-32 --depth=1
               fi
