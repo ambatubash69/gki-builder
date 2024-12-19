@@ -171,7 +171,7 @@ jobs:
         cd "$GITHUB_WORKSPACE/kernel_workspace/android-kernel"
         patch -p1 <50_add_susfs_in_gki-android12-5.10.patch || exit 1
 
-        echo "SUSFS_MODULE=$GITHUB_WORKSPACE/kernel_workspace/susfs4ksu/ksu_module_susfs"
+        echo "SUSFS_MODULE=$GITHUB_WORKSPACE/kernel_workspace/susfs4ksu/ksu_module_susfs" >> $GITHUB_ENV
         echo "SUSFS_MODULE_ZIP=ksu_module_susfs.zip" >> $GITHUB_ENV
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/KSU/KSUxSUSFS/g")" >> $GITHUB_ENV
 
@@ -203,9 +203,7 @@ jobs:
     - name: Zipping Kernel
       run: |
         set -x
-        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g")" >> $GITHUB_ENV
-        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV
-        
+        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g; s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV 
         git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
         cp $GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
         cd $GITHUB_WORKSPACE/kernel_workspace/anykernel
