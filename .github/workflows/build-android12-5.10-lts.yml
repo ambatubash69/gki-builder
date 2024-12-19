@@ -144,14 +144,14 @@ jobs:
         echo "KVER=$(make kernelversion 2>/dev/null)" >> $GITHUB_ENV
     
     - name: Setup KernelSU
-      if: inputs.KSU == 'true'
+      if: inputs.KSU == true
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         curl -LSs "${{ env.KERNELSU_INSTALLER }}" | bash -
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION1/KSU/g")" >> $GITHUB_ENV
 
     - name: Setup SUSFS for KSU
-      if: inputs.KSU == 'true' && inputs.SUSFS == 'true'
+      if: inputs.KSU == true && inputs.SUSFS == true
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace
         git clone --depth=1 "https://gitlab.com/simonpunk/susfs4ksu" -b "gki-android12-5.10"
@@ -195,7 +195,7 @@ jobs:
        fi
   
     - name: Set ZIP Name for Non KSU
-      if: inputs.KSU == 'false' && inputs.SUSFS == 'false'
+      if: inputs.KSU == false && inputs.SUSFS == false
       run: |
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION1-//g")" >> $GITHUB_ENV
         
@@ -223,7 +223,7 @@ jobs:
       continue-on-error: false
       
     - name: Zipping SUSFS module
-      if: inputs.SUSFS == 'true' && inputs.KSU == 'true'
+      if: inputs.SUSFS == true && inputs.KSU == true
       run: |
         cd ${{ env.SUSFS_MODULE }}
         zip -r9 ${{ env.SUSFS_MODULE_ZIP }} *
@@ -236,7 +236,7 @@ jobs:
         $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.ZIP_NAME }}"
 
     - name: Release to Telegram (susfs module)
-      if: inputs.SUSFS == 'true' && inputs.KSU == 'true'
+      if: inputs.SUSFS == true && inputs.KSU == true
       run: |
         export TOKEN="${{ secrets.TOKEN }}"
         export CHAT_ID="${{ secrets.CHAT_ID }}"
