@@ -20,29 +20,27 @@ AOSP_CLANG_BRANCH=main
 AOSP_CLANG_VERSION=r536225
 
 USE_CUSTOM_CLANG=true
-CUSTOM_CLANG_SOURCE=https://github.com/Neutron-Toolchains/clang-build-catalogue/releases/download/10032024/neutron-clang-10032024.tar.zst
+CUSTOM_CLANG_SOURCE=https://github.com/XSans0/WeebX-Clang/releases/download/WeebX-Clang-20.0.0git-release/WeebX-Clang-20.0.0git.tar.gz
 CUSTOM_CLANG_BRANCH=
 CUSTOM_CLANG_COMMAND=
 
 # GCC
-ENABLE_AOSP_GCC_ARM64=true
-ENABLE_AOSP_GCC_ARM32=true
+ENABLE_AOSP_GCC_ARM64=false
+ENABLE_AOSP_GCC_ARM32=false
 AOSP_GCC_SYSTEM=linux-x86
 AOSP_GCC_ARM64_VERSION=aarch64-linux-android-4.9
 AOSP_GCC_ARM32_VERSION=arm-linux-androideabi-4.9
 AOSP_GCC_ANDROID_VERSION=14.0.0
 AOSP_GCC_RELEASE=r0.1
 
-USE_CUSTOM_GCC_64=false
-CUSTOM_GCC_64_SOURCE=https://github.com/mvaisakh/gcc-arm64.git
-CUSTOM_GCC_64_BRANCH=gcc-master
+USE_CUSTOM_GCC_64=true
+CUSTOM_GCC_64_SOURCE=https://github.com/XSans0/aarch64-linux-android-4.9.git
+CUSTOM_GCC_64_BRANCH=main
 CUSTOM_GCC_64_BIN=aarch64-linux-android-
-USE_CUSTOM_GCC_32=false
-CUSTOM_GCC_32_SOURCE=https://github.com/mvaisakh/gcc-arm.git
-CUSTOM_GCC_32_BRANCH=gcc-master
+USE_CUSTOM_GCC_32=true
+CUSTOM_GCC_32_SOURCE=https://github.com/XSans0/arm-linux-androideabi-4.9.git
+CUSTOM_GCC_32_BRANCH=main
 CUSTOM_GCC_32_BIN=arm-linux-androideabi-
-
-BUILDER_HOST=ci
 
 TC_CUSTOM_CMDS=CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-gnu-
 EXTRA_CMDS=CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf STRIP=llvm-strip
