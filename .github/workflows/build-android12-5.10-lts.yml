@@ -6,12 +6,12 @@ on:
       KSU:
         description: "KSU?"
         required: true
-        default: true
+        default: "true"
         type: boolean
       SUSFS:
         description: "SUSFS?"
         required: true
-        default: true
+        default: "true"
         type: boolean
 
 jobs:
@@ -204,10 +204,12 @@ jobs:
       run: |
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g")" >> $GITHUB_ENV
         echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV
+        
         git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
         cp $GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
-        cd $GITHUB_WORKSPACE/anykernel
-        sed "s/DUMMY1/${{ env.KVER }}/g" anykernel.sh
+        cd $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        
+        sed -i "s/DUMMY1/${{ env.KVER }}/g" anykernel.sh
         
         if [[ "${{ inputs.KSU }}" == "false" ]]; then
             sed -i "s/KSUDUMMY2 //g" anykernel.sh
@@ -221,7 +223,6 @@ jobs:
         
         zip -r9 ${{ env.ZIP_NAME }} * -x LICENSE
         mv ${{ env.ZIP_NAME }} $GITHUB_WORKSPACE/kernel_workspace
-      continue-on-error: false
       
     - name: Zipping SUSFS module
       if: inputs.SUSFS == true && inputs.KSU == true
@@ -230,13 +231,14 @@ jobs:
         zip -r9 ${{ env.SUSFS_MODULE_ZIP }} *
         mv ${{ env.SUSFS_MODULE_ZIP }} $GITHUB_WORKSPACE/kernel_workspace
         
-    - name: Release to Telegram (Kernel)
+    - name: Upload to Telegram (Kernel)
       run: |
         export TOKEN="${{ secrets.TOKEN }}"
         export CHAT_ID="${{ secrets.CHAT_ID }}"
         $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.ZIP_NAME }}"
+        $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/build.log"
 
-    - name: Release to Telegram (susfs module)
+    - name: Upload to Telegram (susfs module)
       if: inputs.SUSFS == true && inputs.KSU == true
       run: |
         export TOKEN="${{ secrets.TOKEN }}"
