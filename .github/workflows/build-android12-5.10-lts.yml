@@ -143,7 +143,11 @@ jobs:
         git clone ${{ env.KERNEL_SOURCE }} -b ${{ env.KERNEL_SOURCE_BRANCH }} android-kernel --depth=1
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
         echo "KVER=$(make kernelversion 2>/dev/null)" >> $GITHUB_ENV
-    
+
+    - name: Download the AnyKernel
+      run: |
+        git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        
     - name: Setup KernelSU
       if: inputs.KSU == true
       run: |
@@ -219,7 +223,6 @@ jobs:
     - name: Zipping Kernel
       run: |
         set -x
-        git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
         cp $GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
         cd $GITHUB_WORKSPACE/kernel_workspace/anykernel
         zip -r9 "${{ env.ZIP_NAME }}" * -x LICENSE
