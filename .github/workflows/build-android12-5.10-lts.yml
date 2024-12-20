@@ -195,19 +195,15 @@ jobs:
             exit 1
        fi
   
-    - name: Set ZIP Name for Non KSU
-      if: inputs.KSU == false && inputs.SUSFS == false
-      run: |
-        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION1-//g")" >> $GITHUB_ENV
-        
-    - name: Zipping Kernel
+    - name: Replace Placeholder
       run: |
         set -x
-        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g; s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV 
-        git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
-        cp $GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        if [[ "${{ inputs.KSU }}" == "false" ]]; then
+            echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION1-//g")" >> $GITHUB_ENV
+        fi
+        echo "ZIP_NAME=$(echo "${{ env.ZIP_NAME }}" | sed "s/OPTION2/${{ env.BUILD_TIME }}/g; s/KVER/${{ env.KVER }}/g")" >> $GITHUB_ENV
+
         cd $GITHUB_WORKSPACE/kernel_workspace/anykernel
-        
         sed -i "s/DUMMY1/${{ env.KVER }}/g" anykernel.sh
         
         if [[ "${{ inputs.KSU }}" == "false" ]]; then
@@ -217,12 +213,19 @@ jobs:
         elif [[ "${{ inputs.SUSFS }}" == "false" ]]; then
             sed -i "s/DUMMY2//g" anykernel.sh
         fi
-        
         sed -i "s/DUMMY3/${{ env.BUILD_TIME }}/g" anykernel.sh
-        
-        zip -r9 ${{ env.ZIP_NAME }} * -x LICENSE
-        mv ${{ env.ZIP_NAME }} $GITHUB_WORKSPACE/kernel_workspace
         set +x
+        
+    - name: Zipping Kernel
+      run: |
+        set -x
+        git clone --depth=1 ${{ env.ANYKERNEL_REPO }} -b ${{ env.ANYKERNEL_BRANCH }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        cp $GITHUB_WORKSPACE/kernel_workspace/android-kernel/out/arch/${{ env.ARCH }}/boot/${{ env.KERNEL_IMAGE_NAME }} $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        cd $GITHUB_WORKSPACE/kernel_workspace/anykernel
+        zip -r9 "${{ env.ZIP_NAME }}" * -x LICENSE
+        mv "${{ env.ZIP_NAME }}" $GITHUB_WORKSPACE/kernel_workspace
+        set +x
+        
     - name: Zipping SUSFS module
       if: inputs.SUSFS == true && inputs.KSU == true
       run: |
@@ -232,6 +235,7 @@ jobs:
         
     - name: Upload to Telegram (Kernel)
       run: |
+        ls -lh $GITHUB_WORKSPACE/kernel_workspace
         export TOKEN="${{ secrets.TOKEN }}"
         export CHAT_ID="${{ secrets.CHAT_ID }}"
         $GITHUB_WORKSPACE/upload_to_tg.sh "$GITHUB_WORKSPACE/kernel_workspace/${{ env.ZIP_NAME }}"
