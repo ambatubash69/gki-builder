@@ -29,7 +29,7 @@ CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
 ZIP_NAME="ambatubash69-KVER-OPTIONE-$RANDOM_HASH.zip"
-AOSP_CLANG_VERSION="r536225"
+AOSP_CLANG_VERSION="r547379"
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
 # Import telegram functions
@@ -50,8 +50,8 @@ sudo apt install -y automake flex lzop bison gperf build-essential zip curl zlib
 
 ## Install Google's repo
 curl -o repo https://storage.googleapis.com/git-repo-downloads/repo
-sudo mv repo /usr/bin
-sudo chmod +x /usr/bin/repo
+chmod +x repo
+sudo ln -sf repo /usr/bin/repo
 
 ## Clone AnyKernel
 git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykernel"
@@ -72,10 +72,13 @@ sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
 
-## Clone crdroid's clang
-rm -rf "$WORK_DIR/prebuilts-master"
-mkdir -p "$WORK_DIR/prebuilts-master/clang/host/linux-x86"
-git clone --depth=1 "https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-${AOSP_CLANG_VERSION}" "$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}"
+## Download Clang
+rm -rf $WORK_DIR/prebuilts-master
+mkdir -p $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
+wget -O $WORK_DIR/clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-$AOSP_CLANG_VERSION.tar.gz
+tar -xf $WORK_DIR/clang.tar.gz -C $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
+rm -f $WORK_DIR/clang.tar.gz
+
 COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
 
 ## KernelSU setup
