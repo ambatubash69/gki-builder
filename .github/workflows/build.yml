@@ -12,23 +12,19 @@ on:
      - 'full'
      - 'thin'
      - 'none'
+     
     KSU:
-     description: 'Include KSU?'
+     description: 'KSU'
      required: true
-     default: 'Yes'
-     type: choice
-     options:
-     - 'Yes'
-     - 'No'
+     default: true
+     type: boolean
      
     SUSFS4KSU:
-     description: 'Include SUSFS4KSU?'
+     description: 'SUSFS4KSU'
      required: true
-     default: 'Yes'
-     type: choice
-     options:
-     - 'Yes'
-     - 'No'
+     default: true
+     type: boolean
+     
     NOTE:
      description: 'Release Note'
      required: false
@@ -57,11 +53,11 @@ jobs:
 
        export LTO_TYPE="${{ inputs.LTO }}"
 
-       if [ "${{ inputs.SUSFS4KSU }}" = "Yes" ]; then
+       if [ "${{ inputs.SUSFS4KSU }}" == "true" ]; then
             export USE_KSU_SUSFS="yes"
        fi
 
-       if [ "${{ inputs.KSU }}" = "Yes" ]; then
+       if [ "${{ inputs.KSU }}" == "true" ]; then
             export USE_KSU="yes"
        fi
 
