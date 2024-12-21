@@ -50,8 +50,8 @@ sudo apt install -y automake flex lzop bison gperf build-essential zip curl zlib
 
 ## Install Google's repo
 curl -o repo https://storage.googleapis.com/git-repo-downloads/repo
-chmod +x repo
-sudo ln -sf repo /usr/bin/repo
+sudo mv repo /usr/bin
+sudo chmod +x /usr/bin/repo
 
 ## Clone AnyKernel
 git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykernel"
