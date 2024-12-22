@@ -24,6 +24,9 @@ LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
 
 # Common
 GKI_VERSION="android12-5.10"
+GKI_BUILD_USER="ambatubash69"
+GKI_BUILD_TZ="Asia\/Makassar"
+GKI_BUILD_HOST="gacorprjkt"
 CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest"
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
@@ -65,6 +68,14 @@ cd "$WORK_DIR/common"
 KERNEL_VERSION=$(make kernelversion)
 LAST_COMMIT_KERNEL=$(git log --format="%s" -n 1)
 cd "$WORK_DIR"
+
+# Apply some patch to _setup_env.sh
+sed -i \
+    -e "s/^export TZ=.*/export TZ=$GKI_BUILD_TZ" \
+    -e "s/^export KBUILD_BUILD_USER=.*/export KBUILD_BUILD_USER=$GKI_BUILD_USER/" \
+    -e "s/^export KBUILD_BUILD_HOST=.*/export KBUILD_BUILD_HOST=$GKI_BUILD_HOST/" \
+    -e "s/^export KBUILD_BUILD_TIMESTAMP=.*/export KBUILD_BUILD_TIMESTAMP=$(date)/" \
+    build/_env_setup.sh
 
 # Set aosp clang version
 sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
