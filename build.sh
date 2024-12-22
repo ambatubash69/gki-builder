@@ -75,7 +75,7 @@ sed -i \
     -e "s/^export KBUILD_BUILD_USER=.*/export KBUILD_BUILD_USER=$GKI_BUILD_USER/" \
     -e "s/^export KBUILD_BUILD_HOST=.*/export KBUILD_BUILD_HOST=$GKI_BUILD_HOST/" \
     -e "s/^export KBUILD_BUILD_TIMESTAMP=.*/export KBUILD_BUILD_TIMESTAMP=$(date)/" \
-    build/_env_setup.sh
+    build/_setup_env.sh
 
 # Set aosp clang version
 sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
