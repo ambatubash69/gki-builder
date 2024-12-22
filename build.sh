@@ -74,7 +74,7 @@ sed -i \
     -e "s|^export TZ=.*|export TZ=$GKI_BUILD_TZ|" \
     -e "s|^export KBUILD_BUILD_USER=.*|export KBUILD_BUILD_USER=$GKI_BUILD_USER|" \
     -e "s|^export KBUILD_BUILD_HOST=.*|export KBUILD_BUILD_HOST=$GKI_BUILD_HOST|" \
-    -e "s|^export KBUILD_BUILD_TIMESTAMP=.*|export KBUILD_BUILD_TIMESTAMP=$(date)|" \
+    -e "s|^export KBUILD_BUILD_TIMESTAMP=.*|export KBUILD_BUILD_TIMESTAMP=\$(date)|" \
     build/_setup_env.sh
 
 # Set aosp clang version
