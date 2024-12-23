@@ -35,7 +35,7 @@ ZIP_NAME="ambatubash69-KVER-OPTIONE-$RANDOM_HASH.zip"
 USE_AOSP_CLANG=false
 AOSP_CLANG_VERSION="r547379"
 USE_CUSTOM_CLANG=true
-CUSTOM_CLANG_SOURCE="$(curl -s https://raw.githubusercontent.com/XSans0/WeebX-Clang/refs/heads/main/main/link.txt)"
+CUSTOM_CLANG_SOURCE="$(curl -s https://raw.githubusercontent.com/greenforce-project/greenforce_clang/refs/heads/main/get_latest_url.sh >temp.sh; chmod +x temp.sh; source temp.sh; echo "$LATEST_URL_GZ")"
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
 # Import telegram functions
