@@ -32,7 +32,10 @@ CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
 ANYKERNEL_BRANCH="gki"
 ZIP_NAME="ambatubash69-KVER-OPTIONE-$RANDOM_HASH.zip"
+USE_AOSP_CLANG=false
 AOSP_CLANG_VERSION="r547379"
+USE_CUSTOM_CLANG=true
+CUSTOM_CLANG_SOURCE="$(curl -s https://raw.githubusercontent.com/XSans0/WeebX-Clang/refs/heads/main/main/link.txt)"
 KERNEL_IMAGE="$WORK_DIR/out/${GKI_VERSION}/dist/Image"
 
 # Import telegram functions
@@ -78,19 +81,37 @@ sed -i \
     build/_setup_env.sh
 
 # Set aosp clang version
-sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
+if [ "$USE_CUSTOM_CLANG" == "true" ]; then
+    sed -i "s|CLANG_PREBUILT_BIN=.*|CLANG_PREBUILT_BIN=$WORK_DIR/clang/bin|g" $WORK_DIR/common/build.config.common
+elif [ "$USE_AOSP_CLANG" == "true" ]; then
+    sed -i "s/DUMMY1/$AOSP_CLANG_VERSION/g" $WORK_DIR/common/build.config.common
+fi
 
 ## Set kernel version in ZIP_NAME
 ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
 
 ## Download Clang
-rm -rf $WORK_DIR/prebuilts-master
-mkdir -p $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
-wget -O $WORK_DIR/clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-$AOSP_CLANG_VERSION.tar.gz
-tar -xf $WORK_DIR/clang.tar.gz -C $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
-rm -f $WORK_DIR/clang.tar.gz
+if [ "$USE_AOSP_CLANG" == "true" ]; then
+    rm -rf $WORK_DIR/prebuilts-master
+    mkdir -p $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
+    wget -qO $WORK_DIR/clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-$AOSP_CLANG_VERSION.tar.gz
+    tar -xf $WORK_DIR/clang.tar.gz -C $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
+    rm -f $WORK_DIR/clang.tar.gz
+elif [ "$USE_CUSTOM_CLANG" == "true" ]; then
+    rm -rf $WORK_DUR/prebuilts-master
+    mkdir $WORK_DIR/clang
+    wget -qO $WORK_DIR/clang.tar.gz "$CUSTOM_CLANG_SOURCE"
+    tar -xf $WORK_DIR/clang.tar.gz -C $WORK_DIR/clang
+    rm -f $WORK_DIR/clang.tar.gz
+elif [ "$USE_CUSTOM_CLANG" == "false" ] && [ "$USE_AOSP_CLANG" == "false" ]; then
+    exit 1
+fi
 
-COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
+if [ "$USE_AOSP_CLANG" == "true" ]; then
+    COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_CLANG_VERSION}/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
+elif [ "$USE_CUSTOM_CLANG" == "true" ]; then
+    COMPILER_STRING=$("$WORK_DIR/clang/bin/clang" -v 2>&1 | head -n 1 | sed 's/(https..*//' | sed 's/ version//')
+fi
 
 ## KernelSU setup
 if [ "${USE_KSU}" == "yes" ]; then
