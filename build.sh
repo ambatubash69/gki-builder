@@ -66,6 +66,11 @@ git clone --depth=1 "$ANYKERNEL_REPO" -b "$ANYKERNEL_BRANCH" "$WORK_DIR/anykerne
 repo init --depth 1 "$CUSTOM_MANIFEST_REPO" -b "$CUSTOM_MANIFEST_BRANCH"
 repo sync -j$(nproc --all) --force-sync
 
+if [ "$USE_CUSTOM_CLANG" == "true" ]; then
+    # Import patched _setup_env.sh
+    curl -s https://raw.githubusercontent.com/ambatubash69/kranul_build_script/refs/heads/main/_setup_env.sh >$WORK_DIR/build/_setup_env.sh
+fi
+
 ## Extract kernel version, git commit string
 cd "$WORK_DIR/common"
 KERNEL_VERSION=$(make kernelversion)
