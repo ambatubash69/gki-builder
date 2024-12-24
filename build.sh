@@ -25,8 +25,8 @@ LAST_COMMIT_BUILDER=$(git log --format="%s" -n 1)
 # Common
 GKI_VERSION="android12-5.10"
 GKI_BUILD_USER="ambatubash69"
-GKI_BUILD_TZ="Asia/Makassar"
 GKI_BUILD_HOST="gacorprjkt"
+GKI_BUILD_TZ="Asia/Makassar"
 CUSTOM_MANIFEST_REPO="https://github.com/ambatubash69/gki_manifest"
 CUSTOM_MANIFEST_BRANCH="$GKI_VERSION"
 ANYKERNEL_REPO="https://github.com/ambatubash69/Anykernel3"
@@ -52,7 +52,7 @@ sudo apt upgrade -y
 sudo apt install -y automake flex lzop bison gperf build-essential zip curl zlib1g-dev g++-multilib libxml2-utils bzip2 libbz2-dev libbz2-1.0 libghc-bzlib-dev squashfs-tools pngcrush schedtool dpkg-dev liblz4-tool make optipng maven libssl-dev pwgen libswitch-perl policycoreutils minicom libxml-sax-base-perl libxml-simple-perl bc libc6-dev-i386 lib32ncurses5-dev libx11-dev lib32z-dev libgl1-mesa-dev xsltproc unzip device-tree-compiler python2 rename libelf-dev dwarves rsync
 
 ## Install Google's repo
-curl -o repo https://storage.googleapis.com/git-repo-downloads/repo
+curl -so repo https://storage.googleapis.com/git-repo-downloads/repo
 sudo mv repo /usr/bin
 sudo chmod +x /usr/bin/repo
 
@@ -86,7 +86,7 @@ ZIP_NAME=$(echo "$ZIP_NAME" | sed "s/KVER/$KERNEL_VERSION/g")
 ## Download Clang
 rm -rf $WORK_DIR/prebuilts-master
 mkdir -p $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
-wget -O $WORK_DIR/clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-$AOSP_CLANG_VERSION.tar.gz
+wget -qO $WORK_DIR/clang.tar.gz https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-$AOSP_CLANG_VERSION.tar.gz
 tar -xf $WORK_DIR/clang.tar.gz -C $WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-$AOSP_CLANG_VERSION
 rm -f $WORK_DIR/clang.tar.gz
 
@@ -138,16 +138,14 @@ text=$(cat <<EOF
 *~~~ GKI CI ~~~*
 *GKI Version*: \`${GKI_VERSION}\`
 *Kernel Version*: \`${KERNEL_VERSION}\`
+*Status*: \`${STATUS}\`
 *KSU*: \`$([ "$USE_KSU" == "yes" ] && echo "true" || echo "false")\`
 *KSU Version*: \`$([ "$USE_KSU" == "yes" ] && echo "$KSU_VERSION" || echo "null")\`
 *SUSFS*: \`$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "true" || echo "false")\`
 *SUSFS Version*: \`$([ "${USE_KSU_SUSFS}" == "yes" ] && echo "$SUSFS_VERSION" || echo "null")\`
 *LTO Mode*: \`${LTO_TYPE}\`
-*Host OS*: \`$(lsb_release -d -s)\`
-*CPU Cores*: \`$(( $(nproc --all) - 1 ))\`
-*Zip Output*: \`${ZIP_NAME}\`
 *Compiler*: \`${COMPILER_STRING}\`
-*Last Commit (Builder)*:
+*Last Commit (GKI-Builder)*:
 \`\`\`
 ${LAST_COMMIT_BUILDER}
 \`\`\`
@@ -158,10 +156,6 @@ ${LAST_COMMIT_KERNEL}
 $([ "${USE_KSU_SUSFS}" == "yes" ] && echo "*Last Commit (SUSFS)*:
 \`\`\`
 ${LAST_COMMIT_SUSFS}
-\`\`\`")
-$([ "${NOTE}" ] && echo "*Release Note*:
-\`\`\`
-${NOTE}
 \`\`\`")
 EOF
 )

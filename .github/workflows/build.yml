@@ -13,6 +13,15 @@ on:
      - 'thin'
      - 'none'
      
+    STATUS:
+     description: 'Build Status'
+     required: true
+     default: ''
+     type: choice
+     options:
+     - 'BETA'
+     - 'STABLE'
+
     KSU:
      description: 'KSU'
      required: true
@@ -24,10 +33,6 @@ on:
      required: true
      default: true
      type: boolean
-     
-    NOTE:
-     description: 'Release Note'
-     required: false
      
 jobs:
   build:
@@ -51,8 +56,6 @@ jobs:
        [ -x "build.sh" ] || chmod a+x build.sh
        [ -x "telegram_functions.sh" ] || chmod a+x telegram_functions.sh
 
-       export LTO_TYPE="${{ inputs.LTO }}"
-
        if [ "${{ inputs.SUSFS4KSU }}" == "true" ]; then
             export USE_KSU_SUSFS="yes"
        fi
@@ -61,10 +64,9 @@ jobs:
             export USE_KSU="yes"
        fi
 
-       if [ -n "${{ inputs.NOTE }}" ]; then
-            export NOTE="${{ inputs.NOTE }}"
-       fi
-
+       export STATUS="${{ inputs.STATUS }}"
+       export LTO_TYPE="${{ inputs.LTO }}"
+       
        export chat_id="${{ secrets.CHAT_ID }}"
        export token="${{ secrets.TOKEN }}"
        ./build.sh
