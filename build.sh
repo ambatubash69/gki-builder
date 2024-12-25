@@ -97,12 +97,12 @@ COMPILER_STRING=$("$WORK_DIR/prebuilts-master/clang/host/linux-x86/clang-${AOSP_
 
 ## KSU
 if [ "${USE_KSU_NEXT}" == "yes" ]; then
-        # Enable SUS🤨FS by default
-        KSU_NEXT_BRANCH=susfs-$(echo "$GKI_VERSION" | sed 's/ndroid//g')
-        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/refs/heads/${KSU_NEXT_BRANCH}/kernel/setup.sh" | bash -
-        cd "$WORK_DIR/KernelSU-Next"
-        KSU_NEXT_VERSION=$(git describe --abbrev=0 --tags)
-        cd "$WORK_DIR"
+    # Enable SUS🤨FS by default
+    KSU_NEXT_BRANCH=susfs-$(echo "$GKI_VERSION" | sed 's/ndroid//g')
+    curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/refs/heads/${KSU_NEXT_BRANCH}/kernel/setup.sh" | bash -
+    cd "$WORK_DIR/KernelSU-Next"
+    KSU_NEXT_VERSION=$(git describe --abbrev=0 --tags)
+    cd "$WORK_DIR"
 elif [ "${USE_KSU}" == "yes" ]; then
     curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/refs/heads/main/kernel/setup.sh" | bash -
     cd "$WORK_DIR/KernelSU"
@@ -145,6 +145,9 @@ if [ "${USE_KSU}" == "yes" ] && [ "${USE_KSU_SUSFS}" == "yes" ]; then
     SUSFS_MODULE_ZIP="ksu_module_susfs_${SUSFS_VERSION}.zip"
 elif [ "${USE_KSU_SUSFS}" == "yes" ] && [ "$USE_KSU" != "yes" ]; then
     echo "[ERROR] You can't use SUSFS without KSU enabled!"
+    exit 1
+elif [ "${USE_KSU_SUSFS}" == "yes" ] && [ "$USE_KSU_NEXT" == "yes" ]; then
+    echo "KSU-Next has SusFS by default"
     exit 1
 fi
 
@@ -191,24 +194,29 @@ if ! [ -f "$KERNEL_IMAGE" ]; then
     upload_file "$WORK_DIR/build_log.txt"
 else
     send_msg "✅ GKI Build succeeded"
-    
+
     ## Zipping
     cd "$WORK_DIR/anykernel"
     sed -i "s/DUMMY1/$KERNEL_VERSION/g" anykernel.sh
-    if [ -z "$USE_KSU" ]; then
+
+    if [ -z "$USE_KSU" ] && [ -z "$USE_KSU_NEXT" ]; then
         sed -i "s/KSUDUMMY2 //g" anykernel.sh
+    elif [ -z "$USE_KSU" ] && [ "$USE_KSU_NEXT" == "yes" ]; then
+        sed -i "s/KSUDUMMY2/KSU-Next/g" anykernel.sh
     fi
+
     if [ -z "$USE_KSU_SUSFS" ]; then
         sed -i "s/DUMMY2//g" anykernel.sh
     else
         sed -i "s/DUMMY2/xSUSFS/g" anykernel.sh
-    fi 
+    fi
+
     cp "$KERNEL_IMAGE" .
     zip -r9 "$ZIP_NAME" * -x LICENSE
     mv "$ZIP_NAME" "$WORK_DIR"
     cd "$WORK_DIR"
     upload_file "$WORK_DIR/$ZIP_NAME"
-    
+
     if [ "$USE_KSU_SUSFS" == "yes" ]; then
         cd "$SUSFS_MODULE"
         zip -r9 "$SUSFS_MODULE_ZIP" * -x README.md
